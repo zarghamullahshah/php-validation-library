@@ -54,6 +54,49 @@ $v = new Validator(['color' => 'purple']);
 $v->rule('color', 'in:red,green,blue');
 check('value outside list fails in', !$v->passes());
 
+// date rule: real calendar dates in Y-m-d.
+$v = new Validator(['dob' => '2026-11-26', 'leap' => '2024-02-29']);
+$v->rule('dob', 'date')->rule('leap', 'date');
+check('valid dates pass', $v->passes());
+
+$v = new Validator(['dob' => '2026-02-30']);
+$v->rule('dob', 'date');
+check('impossible date fails', !$v->passes());
+check('impossible date message', ($v->errors()['dob'][0] ?? '') === 'dob must be a valid date (YYYY-MM-DD).');
+
+$v = new Validator(['dob' => '2026-13-01']);
+$v->rule('dob', 'date');
+check('month 13 fails date', !$v->passes());
+
+$v = new Validator(['dob' => '26/11/2026']);
+$v->rule('dob', 'date');
+check('wrong-format date fails', !$v->passes());
+
+$v = new Validator(['dob' => '2026-11-26 10:00']);
+$v->rule('dob', 'date');
+check('datetime string fails date', !$v->passes());
+
+// boolean rule: true, false, 1, 0, "1", "0" only.
+$v = new Validator([
+    'a' => true, 'b' => false, 'c' => 1, 'd' => 0, 'e' => '1', 'f' => '0',
+]);
+$v->rule('a', 'boolean')->rule('b', 'boolean')->rule('c', 'boolean')
+  ->rule('d', 'boolean')->rule('e', 'boolean')->rule('f', 'boolean');
+check('true/false/1/0/"1"/"0" pass boolean', $v->passes());
+
+$v = new Validator(['flag' => 'yes']);
+$v->rule('flag', 'boolean');
+check('"yes" fails boolean', !$v->passes());
+check('boolean message', ($v->errors()['flag'][0] ?? '') === 'flag must be a boolean value.');
+
+$v = new Validator(['flag' => 'maybe']);
+$v->rule('flag', 'boolean');
+check('"maybe" fails boolean', !$v->passes());
+
+$v = new Validator(['flag' => 2]);
+$v->rule('flag', 'boolean');
+check('2 fails boolean', !$v->passes());
+
 // Unknown rule throws.
 try {
     (new Validator(['x' => '1']))->rule('x', 'bogus');

@@ -59,6 +59,13 @@ final class Validator
             case 'url':
                 return filter_var($value, FILTER_VALIDATE_URL) === false
                     ? "$field must be a valid URL." : null;
+            case 'date':
+                $parsed = DateTimeImmutable::createFromFormat('Y-m-d', (string) $value);
+                $valid = $parsed !== false && $parsed->format('Y-m-d') === (string) $value;
+                return !$valid ? "$field must be a valid date (YYYY-MM-DD)." : null;
+            case 'boolean':
+                return !in_array($value, [true, false, 1, 0, '1', '0'], true)
+                    ? "$field must be a boolean value." : null;
             case 'numeric':
                 return !is_numeric($value) ? "$field must be a number." : null;
             case 'min':
