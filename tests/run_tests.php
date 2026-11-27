@@ -97,6 +97,41 @@ $v = new Validator(['flag' => 2]);
 $v->rule('flag', 'boolean');
 check('2 fails boolean', !$v->passes());
 
+// ip rule: IPv4, IPv6, or either; v4/v6 pinning via "ip:v4" / "ip:v6".
+$v = new Validator([
+    'host' => '192.168.1.1', 'v6' => '2001:db8::1', 'either' => '10.0.0.5',
+    'v6only' => 'fe80::1',
+]);
+$v->rule('host', 'ip')->rule('v6', 'ip')->rule('either', 'ip:v4')
+  ->rule('v6only', 'ip:v6');
+check('valid IPv4 and IPv6 addresses pass ip', $v->passes());
+
+$v = new Validator(['host' => '999.1.1.1']);
+$v->rule('host', 'ip');
+check('out-of-range IPv4 fails ip', !$v->passes());
+check('ip message', ($v->errors()['host'][0] ?? '') === 'host must be a valid IP address.');
+
+$v = new Validator(['host' => 'not-an-ip']);
+$v->rule('host', 'ip');
+check('hostname fails ip', !$v->passes());
+
+$v = new Validator(['host' => '2001:db8::1']);
+$v->rule('host', 'ip:v4');
+check('IPv6 fails ip:v4', !$v->passes());
+check('ip:v4 message', ($v->errors()['host'][0] ?? '') === 'host must be a valid IPv4 address.');
+
+$v = new Validator(['host' => '192.168.1.1']);
+$v->rule('host', 'ip:v6');
+check('IPv4 fails ip:v6', !$v->passes());
+check('ip:v6 message', ($v->errors()['host'][0] ?? '') === 'host must be a valid IPv6 address.');
+
+try {
+    (new Validator(['x' => '1.2.3.4']))->rule('x', 'ip:v5');
+    check('unknown ip version throws', false);
+} catch (InvalidArgumentException $e) {
+    check('unknown ip version throws', true);
+}
+
 // Unknown rule throws.
 try {
     (new Validator(['x' => '1']))->rule('x', 'bogus');

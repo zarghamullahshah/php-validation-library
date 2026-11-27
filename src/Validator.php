@@ -59,6 +59,21 @@ final class Validator
             case 'url':
                 return filter_var($value, FILTER_VALIDATE_URL) === false
                     ? "$field must be a valid URL." : null;
+            case 'ip':
+                // Plain "ip" accepts either version; "ip:v4" / "ip:v6" pin one.
+                $flags = 0;
+                $label = 'IP';
+                if ($param === 'v4') {
+                    $flags = FILTER_FLAG_IPV4;
+                    $label = 'IPv4';
+                } elseif ($param === 'v6') {
+                    $flags = FILTER_FLAG_IPV6;
+                    $label = 'IPv6';
+                } elseif ($param !== null) {
+                    throw new InvalidArgumentException("Unknown ip version: $param (use ip, ip:v4 or ip:v6)");
+                }
+                return filter_var($value, FILTER_VALIDATE_IP, $flags) === false
+                    ? "$field must be a valid $label address." : null;
             case 'date':
                 $parsed = DateTimeImmutable::createFromFormat('Y-m-d', (string) $value);
                 $valid = $parsed !== false && $parsed->format('Y-m-d') === (string) $value;

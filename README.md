@@ -27,6 +27,7 @@ if (!$v->passes()) {
 | `required` | Field must be present and non-empty |
 | `email` | Must be a valid email address |
 | `url` | Must be a valid URL |
+| `ip` | Must be a valid IP address (IPv4 or IPv6); `ip:v4` / `ip:v6` pin one version |
 | `date` | Must be a real calendar date in `YYYY-MM-DD` format (rejects impossible dates like `2026-02-30`) |
 | `boolean` | Must be `true`, `false`, `1`, `0`, `"1"` or `"0"` |
 | `numeric` | Must be a number |
